@@ -1,2 +1,2 @@
 # VHDL source
-*.vhdl
+!*.vhdl
