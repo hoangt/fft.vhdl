@@ -1,0 +1,36 @@
+# remove previous results #
+rm -rf ./rpt/*
+rm -rf ./log/*
+rm -rf ./fft*.tcl
+
+# number of points
+points=( 64 256 )
+
+# number of butterflies
+butterflies=( 1 2 )
+
+for point in ${points[@]}; do
+
+  # build twiddle factor
+  rm -rf ./misc/twiddle_factor.vhdl
+  rm -rf ./src/twiddle_factor.vhdl
+  python ./misc/twiddle_factor.py ${point} 16 ./misc/template_for_twiddle_factor.vhdl ./src/twiddle_factor.vhdl
+
+  echo "twiddle factors for ${point}-point FFT with ${butterfly} butterflies are created."
+
+  for butterfly in ${butterflies[@]}; do
+
+    # build RTL Compiler script
+    python ./misc/fft_script.py ${point} ${butterfly} 16 ./misc/template_for_fft_script.tcl ./fft${point}_${butterfly}.tcl
+
+    # synthesis and report synthesis time
+    'time' --output=./log/fft${point}_${butterfly}_synthesis_time.log rc -f fft${point}_${butterfly}.tcl > ./log/fft${point}_${butterfly}.log
+
+    echo "done for ${point}-point FFT with ${butterfly} butterflies"
+
+  done;
+
+done;
+
+rm -rf ./fv
+rm -rf ./rc*
